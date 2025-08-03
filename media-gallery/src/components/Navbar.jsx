@@ -17,28 +17,53 @@ export default function Navbar() {
     navigate('/login');
   };
 
+  const isLoggedIn = Boolean(user);
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <nav className="bg-indigo-700 text-white p-4 flex justify-between items-center">
-      <Link to="/" className="font-bold text-lg">
+    <nav className="bg-teal-700 text-white p-4 flex justify-between items-center shadow-md">
+      <Link to="/" className="font-bold text-xl hover:text-teal-300">
         Media Gallery
       </Link>
-      <div className="space-x-4">
-        {user ? (
+
+      <div className="space-x-6 flex items-center">
+        {isLoggedIn ? (
           <>
+            <Link to="/dashboard" className="hover:underline">
+              Dashboard
+            </Link>
             <Link to="/gallery" className="hover:underline">
               Gallery
+            </Link>
+            <Link to="/upload" className="hover:underline">
+              Upload
+            </Link>
+            <Link to="/zip-download" className="hover:underline">
+              ZIP Download
+            </Link>
+            <Link to="/profile" className="hover:underline">
+              Profile
             </Link>
             <Link to="/contact" className="hover:underline">
               Contact
             </Link>
-            {user.role === 'admin' && (
-              <Link to="/admin/users" className="hover:underline">
-                Admin
-              </Link>
+
+            {isAdmin && (
+              <>
+                <Link to="/admin/users" className="hover:underline">
+                  User Management
+                </Link>
+                <Link to="/admin/contact-messages" className="hover:underline">
+                  Contact Messages
+                </Link>
+              </>
             )}
+
+            <span className="mx-2">Hello, {user.name}</span>
+
             <button
               onClick={logout}
-              className="bg-red-600 px-3 py-1 rounded hover:bg-red-700"
+              className="bg-red-600 px-3 py-1 rounded hover:bg-red-700 transition"
             >
               Logout
             </button>
