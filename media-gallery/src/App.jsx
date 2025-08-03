@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import RegisterPage from './pages/RegisterPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import GalleryPage from './pages/GalleryPage.jsx';
-import ContactPage from './pages/ContactPage.jsx';
-import AdminUsers from './pages/AdminUsers.jsx';
-import Unauthorized from './pages/Unauthorized.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
+import RegisterPage from '../src/pages/RegisterPage.jsx';
+import LoginPage from '../src/pages/LoginPage.jsx';
+import GalleryPage from '../src/components/DropzoneGallery.jsx';
+import ContactPage from '../src/components/ContactForm.jsx';
+import AdminUsers from '../src/pages/AdminUsers.jsx';
+import Unauthorized from '../src/pages/Unauthorized.jsx';
+import ProtectedRoute from '../src/components/ProtectRoute.jsx'
 
 export default function App() {
   return (
