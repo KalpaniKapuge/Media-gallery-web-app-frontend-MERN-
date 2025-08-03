@@ -1,1 +1,0 @@
-# Media-gallery-web-app-frontend-MERN-
