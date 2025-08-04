@@ -1,14 +1,13 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import api from '../api';
 import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
   const navigate = useNavigate();
-  const inputRef = useRef();
+  const location = useLocation();
+  const dropdownRef = useRef();
+  const [openUserMenu, setOpenUserMenu] = useState(false);
 
   useEffect(() => {
     try {
@@ -17,6 +16,16 @@ export default function Navbar() {
     } catch {
       setUser(null);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpenUserMenu(false);
+      }
+    };
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => window.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const logout = () => {
@@ -29,229 +38,132 @@ export default function Navbar() {
 
   const isAdmin = user?.role === 'admin';
 
-  const handleFile = (file) => {
-    if (!file) return;
-    
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      toast.error('File too large. Maximum size is 10MB.');
-      return;
-    }
-    
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'application/zip'];
-    const allowedExtensions = ['.zip'];
-    const isZip = allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-    
-    if (!allowedTypes.includes(file.type) && !isZip) {
-      toast.error('Only image files (PNG, JPG, GIF, WebP) or ZIP files are allowed');
-      return;
-    }
-    
-    setSelectedFile(file);
-    console.log('File selected:', {
-      name: file.name,
-      type: file.type,
-      size: file.size
-    });
-  };
-
-  const submitUpload = async () => {
-    if (!selectedFile) {
-      toast.error('Please select a file first');
-      return;
-    }
-
-    if (!user) {
-      toast.error('Please login to upload files');
-      navigate('/login');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-    formData.append('title', selectedFile.name.split('.')[0]); // Use filename without extension as title
-    formData.append('description', '');
-    formData.append('tags', '');
-
-    setUploading(true);
-    
-    try {
-      console.log('Starting upload...');
-      const res = await api.post('/media/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      console.log('Upload response:', res.data);
-      toast.success('File uploaded successfully!');
-      setSelectedFile(null);
-      
-      // Refresh gallery if on gallery page
-      if (window.location.pathname === '/gallery') {
-        window.location.reload();
-      }
-      
-    } catch (error) {
-      console.error('Upload error:', error);
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || 'Upload failed';
-      toast.error(errorMessage);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const onDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    handleFile(file);
-  };
-
-  const onSelectClick = () => {
-    inputRef.current?.click();
+  const navItemClass = (path) => {
+    const base = 'px-4 py-2 font-medium transition relative';
+    const active =
+      location.pathname === path
+        ? 'text-white'
+        : 'text-teal-100 hover:text-white';
+    return `${base} ${active}`;
   };
 
   return (
-    <nav className="bg-teal-700 text-white p-4 flex flex-wrap justify-between items-center gap-2">
-      <div className="flex items-center gap-4 flex-wrap">
-        <Link to="/" className="font-bold text-lg hover:text-teal-200 transition-colors">
-          Media Gallery
+    <nav className="bg-gradient-to-r from-teal-700 to-cyan-700 text-white px-6 py-3 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+      {/* Left: Logo */}
+      <div className="flex items-center gap-4 flex-shrink-0">
+        <Link to="/" className="flex items-center gap-2">
+          <img
+            src="/logo.jpg" // replace with your logo
+            alt="Logo"
+            className="h-10 w-10 rounded-full object-cover border-2 border-white shadow"
+          />
+          <div className="flex flex-col leading-tight">
+            <span className="font-extrabold text-lg tracking-tight">Media Gallery</span>
+            <span className="text-xs text-teal-200">Your visual archive</span>
+          </div>
         </Link>
+      </div>
 
+      {/* Center: Primary Links */}
+      <div className="flex-1 flex justify-center gap-8">
         {user && (
           <>
-            <Link 
-              to="/gallery" 
-              className="hover:underline hover:text-teal-200 transition-colors"
-            >
-              Gallery
-            </Link>
-            
-            {/* Upload component - only show when logged in */}
-            <div className="relative">
-              <div
-                onDrop={onDrop}
-                onDragOver={(e) => e.preventDefault()}
-                className="flex items-center gap-2 bg-white text-teal-700 rounded px-3 py-1 cursor-pointer select-none hover:bg-teal-50 transition-colors"
-                onClick={onSelectClick}
-                aria-label="upload area"
-              >
-                <span className="text-sm font-medium">Upload</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5m0 0l5 5m-5-5v12" 
-                  />
-                </svg>
+            <Link to="/gallery" className={navItemClass('/gallery')}>
+              <div className="relative">
+                Gallery
+                {location.pathname === '/gallery' && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-green-300 to-teal-400" />
+                )}
               </div>
-              
-              <input
-                ref={inputRef}
-                type="file"
-                accept="image/*,.zip"
-                className="hidden"
-                onChange={(e) => handleFile(e.target.files[0])}
-              />
-              
-              {selectedFile && (
-                <div className="absolute right-0 mt-2 w-64 bg-white text-black rounded shadow-lg p-3 z-50 border">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold truncate text-sm">{selectedFile.name}</div>
-                      <div className="text-xs text-gray-600">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setSelectedFile(null)}
-                      className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold"
-                      aria-label="clear selection"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      onClick={submitUpload}
-                      disabled={uploading}
-                      className="flex-1 bg-teal-600 text-white py-2 px-3 rounded font-medium hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-                    >
-                      {uploading ? 'Uploading...' : 'Upload'}
-                    </button>
-                    <button
-                      onClick={() => setSelectedFile(null)}
-                      disabled={uploading}
-                      className="flex-1 bg-gray-500 text-white py-2 px-3 rounded font-medium hover:bg-gray-600 disabled:opacity-50 transition-colors text-sm"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            <Link 
-              to="/contact" 
-              className="hover:underline hover:text-teal-200 transition-colors"
-            >
-              Contact
+            </Link>
+            <Link to="/contact" className={navItemClass('/contact')}>
+              <div className="relative">
+                Contact
+                {location.pathname === '/contact' && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-green-300 to-teal-400" />
+                )}
+              </div>
             </Link>
           </>
         )}
       </div>
 
-      <div className="flex flex-wrap gap-4 items-center">
+      {/* Right: Admin / User */}
+      <div className="flex items-center gap-4 flex-shrink-0 relative">
         {user ? (
           <>
             {isAdmin && (
-              <>
-                <Link 
-                  to="/admin/users" 
-                  className="hover:underline hover:text-teal-200 transition-colors"
-                >
+              <div className="flex gap-4">
+                <Link to="/admin/users" className={navItemClass('/admin/users')}>
                   Users
                 </Link>
-                <Link 
-                  to="/admin/contact-messages" 
-                  className="hover:underline hover:text-teal-200 transition-colors"
+                <Link
+                  to="/admin/contact-messages"
+                  className={navItemClass('/admin/contact-messages')}
                 >
                   Messages
                 </Link>
-              </>
+              </div>
             )}
-            
-            <span className="mx-2 hidden sm:inline text-teal-200">
-              Hi, {user?.name}
-            </span>
-            
-            <button
-              onClick={logout}
-              className="bg-red-600 px-3 py-2 rounded hover:bg-red-700 transition-colors font-medium"
-            >
-              Logout
-            </button>
+
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setOpenUserMenu((o) => !o)}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition rounded-full px-3 py-1 text-sm font-medium backdrop-blur-sm"
+                aria-label="User menu"
+              >
+                <div className="h-8 w-8 flex items-center justify-center bg-gradient-to-r from-green-300 to-teal-400 rounded-full text-xs font-semibold uppercase text-white">
+                  {user?.name?.[0] || 'U'}
+                </div>
+                <div className="hidden sm:block text-sm text-white">
+                  Hi, {user?.name}
+                </div>
+                <svg
+                  className={`h-4 w-4 transition-transform ${openUserMenu ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {openUserMenu && (
+                <div className="absolute right-0 mt-2 w-52 bg-white text-teal-800 rounded-lg shadow-xl z-50 overflow-hidden ring-1 ring-black ring-opacity-5 animate-enter">
+                  <div className="relative px-4 py-2">
+                    {/* Arrow */}
+                    <div className="absolute top-0 right-4 -mt-2 w-4 h-4 bg-white rotate-45 shadow-md" />
+                    <div className="text-xs mb-1">
+                      Signed in as <strong>{user?.email || user?.name}</strong>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 hover:bg-gray-200 text-sm"
+                        onClick={() => setOpenUserMenu(false)}
+                      >
+                        Profile
+                      </Link>
+                      <button
+                        onClick={logout}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         ) : (
           <>
-            <Link 
-              to="/login" 
-              className="hover:underline hover:text-teal-200 transition-colors"
-            >
+            <Link to="/login" className={navItemClass('/login')}>
               Login
             </Link>
-            <Link 
-              to="/register" 
-              className="hover:underline hover:text-teal-200 transition-colors"
-            >
+            <Link to="/register" className={navItemClass('/register')}>
               Register
             </Link>
           </>

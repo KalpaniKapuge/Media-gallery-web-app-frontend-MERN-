@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import api from '../api';
 import toast from 'react-hot-toast';
@@ -10,25 +10,21 @@ export default function GalleryPage() {
   const [uploading, setUploading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTags, setFilterTags] = useState('');
+  const debounceRef = useRef(null);
 
-  // Load gallery media with optional search and tags filters
-  const loadGallery = async () => {
+  // Memoized gallery loader to capture latest search/filter
+  const loadGallery = useCallback(async () => {
     try {
       setLoading(true);
 
-      // Prepare params for axios GET request
       const params = {};
-      if (searchTerm) params.search = searchTerm;
-      if (filterTags) params.tags = filterTags;
+      if (searchTerm.trim()) params.search = searchTerm.trim();
+      if (filterTags.trim()) params.tags = filterTags.trim();
 
       console.log('Loading gallery with params:', params);
-
-      // Send request with params object (axios handles query string)
       const res = await api.get('/media/gallery', { params });
 
       console.log('Gallery response:', res.data);
-
-      // Support old/new response formats
       const mediaData = res.data.data || res.data;
       setMedia(Array.isArray(mediaData) ? mediaData : []);
     } catch (error) {
@@ -39,21 +35,23 @@ export default function GalleryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, filterTags]);
 
-  // Load gallery on mount
+  // Initial load
   useEffect(() => {
     loadGallery();
-  }, []);
+  }, [loadGallery]);
 
-  // Reload gallery when search/filter changes, with debounce
+  // Debounce when searchTerm or filterTags change
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
       loadGallery();
     }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, filterTags]);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchTerm, filterTags, loadGallery]);
 
   // Handle file upload via dropzone
   const onDrop = useCallback(async (acceptedFiles) => {
@@ -83,9 +81,8 @@ export default function GalleryPage() {
     } finally {
       setUploading(false);
     }
-  }, []);
+  }, [loadGallery]);
 
-  // Dropzone hooks and config
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -95,7 +92,6 @@ export default function GalleryPage() {
     multiple: false,
   });
 
-  // Toggle selection of an item
   const toggleSelect = (id) => {
     setSelected((prev) =>
       prev.includes(id)
@@ -104,17 +100,14 @@ export default function GalleryPage() {
     );
   };
 
-  // Select all media items
   const selectAll = () => {
     setSelected(media.map((item) => item._id));
   };
 
-  // Clear all selections
   const clearSelection = () => {
     setSelected([]);
   };
 
-  // Delete selected items after confirmation
   const deleteSelected = async () => {
     if (!selected.length) return;
 
@@ -132,7 +125,6 @@ export default function GalleryPage() {
     }
   };
 
-  // Download selected items as ZIP file
   const downloadZip = async () => {
     if (!selected.length) {
       toast.error('Please select at least one item to download');
@@ -147,7 +139,6 @@ export default function GalleryPage() {
         { responseType: 'blob' }
       );
 
-      // Create a blob URL and trigger download
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -165,7 +156,6 @@ export default function GalleryPage() {
     }
   };
 
-  // Helper to format file sizes
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -174,7 +164,6 @@ export default function GalleryPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Show loading spinner while loading gallery
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -191,7 +180,7 @@ export default function GalleryPage() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">Media Gallery</h1>
 
-        {/* Search and Filter Inputs */}
+        {/* Search and Filter */}
         <div className="flex flex-wrap gap-4 mb-4">
           <input
             type="text"
@@ -227,7 +216,7 @@ export default function GalleryPage() {
           ) : isDragActive ? (
             <p className="text-teal-600 font-medium">Drop your image here...</p>
           ) : (
-            <>
+            <div>
               <svg
                 className="mx-auto h-12 w-12 text-gray-400 mb-2"
                 stroke="currentColor"
@@ -245,7 +234,7 @@ export default function GalleryPage() {
                 <span className="font-medium text-teal-600">Click to upload</span> or drag and drop
               </p>
               <p className="text-sm text-gray-500">Images up to 10MB</p>
-            </>
+            </div>
           )}
         </div>
       </div>
