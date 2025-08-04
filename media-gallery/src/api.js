@@ -1,15 +1,15 @@
 import axios from 'axios';
 
-// Create axios instance with base configuration
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-  timeout: 10000, // 10 seconds timeout
+  timeout: 10000, 
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,7 +18,7 @@ api.interceptors.request.use(
     }
     
     // Log request for debugging
-    console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
+    console.log(` API Request: ${config.method?.toUpperCase()} ${config.url}`, {
       data: config.data,
       headers: config.headers
     });
@@ -35,14 +35,14 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Log successful response
-    console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+    console.log(`API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
       status: response.status,
       data: response.data
     });
     return response;
   },
   (error) => {
-    console.error('❌ API Error:', {
+    console.error(' API Error:', {
       method: error.config?.method?.toUpperCase(),
       url: error.config?.url,
       status: error.response?.status,
