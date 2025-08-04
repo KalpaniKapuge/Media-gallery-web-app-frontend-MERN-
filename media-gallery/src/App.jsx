@@ -1,21 +1,24 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import RegisterPage from '../src/pages/RegisterPage.jsx';
 import LoginPage from '../src/pages/LoginPage.jsx';
-import GalleryPage from '../src/pages/GalleryPage.jsx'; // Fixed import path
-import ContactPage from '../src/components/ContactForm.jsx';
+import GalleryPage from '../src/pages/GalleryPage.jsx';
 import AdminUsers from '../src/pages/AdminUsers.jsx';
 import Unauthorized from '../src/pages/Unauthorized.jsx';
-import ProtectedRoute from '../src/components/ProtectRoute.jsx'
+import ProtectedRoute from '../src/components/ProtectRoute.jsx';
 import HomePage from '../src/pages/HomePage.jsx';
-import Navbar from '../src/components/Navbar.jsx'
+import Navbar from '../src/components/Navbar.jsx';
 import ForgotPasswordPage from '../src/pages/ForgotPassword.jsx';
 import ResetPasswordPage from '../src/pages/ResetPassword.jsx';
+import MyMessages from '../src/components/MyMessages.jsx';
+import AdminMessagesList from '../src/components/AdminMessageList.jsx';
+import ContactPage from '../src/pages/ContactPage.jsx';
 import { Toaster } from 'react-hot-toast';
+
 
 export default function App() {
   return (
     <>
-      <Toaster 
+      <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
@@ -41,6 +44,7 @@ export default function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+
               <Route
                 path="/gallery"
                 element={
@@ -49,6 +53,7 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+
               <Route
                 path="/contact"
                 element={
@@ -57,6 +62,16 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+
+              <Route
+                path="/my-messages"
+                element={
+                  <ProtectedRoute>
+                    <MyMessages />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="/admin/users"
                 element={
@@ -65,6 +80,16 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
+
+              <Route
+                path="/admin/contact-messages"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <AdminMessagesList />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -84,6 +84,7 @@ export default function Navbar() {
                 )}
               </div>
             </Link>
+           
           </>
         )}
       </div>
@@ -101,7 +102,7 @@ export default function Navbar() {
                   to="/admin/contact-messages"
                   className={navItemClass('/admin/contact-messages')}
                 >
-                  Messages
+                  All Messages
                 </Link>
               </div>
             )}
