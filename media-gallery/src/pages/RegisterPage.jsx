@@ -21,8 +21,8 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await api.post('/auth/register/request-otp', {
-        name: form.name,
-        email: form.email,
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
         password: form.password,
       });
       setOtpSent(true);
@@ -40,8 +40,8 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const res = await api.post('/auth/register/verify-otp', {
-        email: form.email,
-        otp: form.otp,
+        email: form.email.trim().toLowerCase(),
+        otp: form.otp.trim(),
       });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
@@ -61,8 +61,8 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await api.post('/auth/register/request-otp', {
-        name: form.name,
-        email: form.email,
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
         password: form.password,
       });
       toast.success('OTP resent');

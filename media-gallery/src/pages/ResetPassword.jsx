@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../api';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function ResetPasswordPage() {
   const [form, setForm] = useState({ email: '', otp: '', newPassword: '' });
@@ -10,20 +11,24 @@ export default function ResetPasswordPage() {
   const submitReset = async (e) => {
     e.preventDefault();
     if (!form.email || !form.otp || !form.newPassword) {
-      alert('All fields are required');
-      return;
+      return toast.error('All fields are required');
     }
+
+    if (form.newPassword.length < 6) {
+      return toast.error('Password must be at least 6 characters');
+    }
+
     setLoading(true);
     try {
       await api.post('/auth/reset-password', {
-        email: form.email,
-        otp: form.otp,
+        email: form.email.trim().toLowerCase(),
+        otp: form.otp.trim(),
         newPassword: form.newPassword,
       });
-      alert('Password reset successful. Please login.');
+      toast.success('Password reset successful. Please login.');
       navigate('/login');
-    } catch (e) {
-      alert(e?.response?.data?.error || 'Reset failed');
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Reset failed');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import api from '../api';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -9,14 +10,17 @@ export default function ForgotPasswordPage() {
 
   const requestReset = async (e) => {
     e.preventDefault();
-    if (!email) return alert('Enter your email');
+    if (!email) {
+      return toast.error('Enter your email');
+    }
+
     setLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email });
+      await api.post('/auth/forgot-password', { email: email.trim().toLowerCase() });
       setSent(true);
-      alert('OTP sent to your email for password reset');
-    } catch (e) {
-      alert(e?.response?.data?.error || 'Failed to send reset OTP');
+      toast.success('OTP sent to your email for password reset');
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Failed to send reset OTP');
     } finally {
       setLoading(false);
     }
@@ -53,10 +57,18 @@ export default function ForgotPasswordPage() {
             {sent ? 'OTP Sent' : loading ? 'Sending...' : 'Send OTP'}
           </button>
         </form>
+
         <p className="text-center text-sm text-gray-500 mt-4">
           Remembered?{' '}
           <Link to="/login" className="text-teal-600 hover:underline">
             Login
+          </Link>
+        </p>
+
+        <p className="text-center text-sm text-gray-500 mt-4">
+          Already got an OTP?{' '}
+          <Link to="/reset-password" className="text-teal-600 hover:underline">
+            Reset password
           </Link>
         </p>
       </div>

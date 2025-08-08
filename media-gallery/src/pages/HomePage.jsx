@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-400 to-teal-700 flex flex-col items-center justify-center px-6 py-12 text-white overflow-hidden relative">
       
@@ -22,18 +24,18 @@ export default function HomePage() {
           </p>
 
           <div className="mt-8 flex justify-center md:justify-start gap-6">
-            <Link
-              to="/register"
+            <button
+              onClick={() => navigate('/register')}
               className="bg-cyan-300 text-teal-900 font-semibold px-8 py-3 rounded-lg shadow-lg hover:bg-cyan-400 transition transform hover:scale-105"
             >
               Get Started
-            </Link>
-            <Link
-              to="/login"
+            </button>
+            <button
+              onClick={() => navigate('/login')}
               className="border border-cyan-300 text-cyan-300 px-8 py-3 rounded-lg hover:bg-cyan-300 hover:text-teal-900 transition transform hover:scale-105"
             >
               Login
-            </Link>
+            </button>
           </div>
         </div>
 
