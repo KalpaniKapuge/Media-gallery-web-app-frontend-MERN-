@@ -28,10 +28,7 @@ export default function UploadPage() {
 
   const submit = async (e) => {
     e?.preventDefault();
-    if (!file) {
-      toast.error('Please choose an image to upload');
-      return;
-    }
+    if (!file) { toast.error('Please choose an image to upload'); return; }
     setUploading(true);
     try {
       const fd = new FormData();
@@ -39,10 +36,7 @@ export default function UploadPage() {
       fd.append('title', title || file.name);
       fd.append('description', description);
       fd.append('tags', tags);
-      const token = localStorage.getItem('token');
-      await api.post('/media/upload', fd, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('/media/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Uploaded');
       navigate('/gallery');
     } catch (err) {
@@ -60,10 +54,10 @@ export default function UploadPage() {
       <div {...getRootProps()} className={`border-dashed border-2 p-8 rounded mb-4 text-center ${isDragActive ? 'border-teal-500 bg-teal-50' : ''}`}>
         <input {...getInputProps()} />
         {isDragActive ? <p className="text-teal-600">Drop image here...</p> : <p>Drag & drop an image here, or click to select (max 10MB)</p>}
-        {file && <div className="mt-3 text-sm text-gray-700">Selected: {file.name} ({Math.round(file.size / 1024)} KB)</div>}
+        {file && <div className="mt-3 text-sm text-gray-700">Selected: {file.name} ({Math.round(file.size/1024)} KB)</div>}
       </div>
 
-      <form onSubmit={submit} className="card max-w-xl">
+      <form onSubmit={submit} className="bg-white p-4 rounded shadow max-w-xl">
         <label className="block mb-2 text-sm">Title</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 border rounded mb-3" />
 
@@ -74,9 +68,7 @@ export default function UploadPage() {
         <input value={tags} onChange={(e) => setTags(e.target.value)} className="w-full px-3 py-2 border rounded mb-4" />
 
         <div className="flex gap-2">
-          <button disabled={uploading} className="px-4 py-2 bg-teal-600 text-white rounded">
-            {uploading ? 'Uploading...' : 'Upload'}
-          </button>
+          <button disabled={uploading} className="px-4 py-2 bg-teal-600 text-white rounded">{uploading ? 'Uploading...' : 'Upload'}</button>
           <button type="button" onClick={() => { setFile(null); setTitle(''); setDescription(''); setTags(''); }} className="px-4 py-2 bg-gray-100 rounded">Reset</button>
         </div>
       </form>

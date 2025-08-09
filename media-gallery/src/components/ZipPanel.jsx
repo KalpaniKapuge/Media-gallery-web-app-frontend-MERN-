@@ -12,12 +12,16 @@ export default function ZipPanel({ selectedIds = [], onDownloaded = () => {} }) 
     }
     setDownloading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await api.post('/media/zip', { ids: selectedIds }, {
-        responseType: 'blob',
-        headers: { Authorization: `Bearer ${token}` }
+      console.log('Sending ZIP request:', {
+        url: `${api.defaults.baseURL}/media/zip`,
+        payload: { ids: selectedIds },
+        headers: { Authorization: api.defaults.headers.Authorization },
       });
-
+      const res = await api.post('/media/download-zip', { ids: selectedIds }, { responseType: 'blob' });
+      console.log('ZIP response:', {
+        status: res.status,
+        headers: res.headers,
+      });
       const blob = new Blob([res.data], { type: 'application/zip' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -30,7 +34,13 @@ export default function ZipPanel({ selectedIds = [], onDownloaded = () => {} }) 
       toast.success('ZIP downloaded');
       onDownloaded();
     } catch (err) {
-      console.error('zip error', err);
+      console.error('ZIP error:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        url: err.config?.url,
+        headers: err.config?.headers,
+      });
       toast.error('Failed to download ZIP');
     } finally {
       setDownloading(false);
@@ -44,7 +54,13 @@ export default function ZipPanel({ selectedIds = [], onDownloaded = () => {} }) 
         <div className="text-xs text-gray-400">You can download selected items as a ZIP.</div>
       </div>
       <div>
-        <button onClick={downloadZip} disabled={downloading || selectedIds.length === 0} className={`px-3 py-2 rounded ${downloading || selectedIds.length === 0 ? 'bg-gray-200' : 'bg-green-600 text-white'}`}>
+        <button
+          onClick={downloadZip}
+          disabled={downloading || selectedIds.length === 0}
+          className={`px-3 py-2 rounded ${
+            downloading || selectedIds.length === 0 ? 'bg-gray-200' : 'bg-green-600 text-white'
+          }`}
+        >
           {downloading ? 'Downloading...' : `Download ZIP (${selectedIds.length})`}
         </button>
       </div>
