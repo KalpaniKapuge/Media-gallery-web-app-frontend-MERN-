@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import RegisterPage from '../src/pages/RegisterPage.jsx';
 import LoginPage from '../src/pages/LoginPage.jsx';
-import GalleryPage from '../src/pages/GalleryPage.jsx';
+import GalleryPage from './pages/MediaGalleryPage.jsx';
 import AdminUsers from '../src/pages/AdminUsers.jsx';
 import Unauthorized from '../src/pages/Unauthorized.jsx';
 import ProtectedRoute from '../src/components/ProtectRoute.jsx';
