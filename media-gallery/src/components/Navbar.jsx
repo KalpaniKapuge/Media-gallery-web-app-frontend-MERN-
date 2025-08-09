@@ -9,15 +9,23 @@ export default function Navbar() {
   const dropdownRef = useRef();
   const [openUserMenu, setOpenUserMenu] = useState(false);
 
+  // Load user initially & listen for changes
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('user') || 'null');
-      setUser(stored);
-    } catch {
-      setUser(null);
-    }
+    const updateUser = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('user') || 'null');
+        setUser(stored);
+      } catch {
+        setUser(null);
+      }
+    };
+
+    updateUser(); // run on mount
+    window.addEventListener('storage', updateUser); // listen for updates
+    return () => window.removeEventListener('storage', updateUser);
   }, []);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -53,12 +61,14 @@ export default function Navbar() {
       <div className="flex items-center gap-4 flex-shrink-0">
         <Link to="/" className="flex items-center gap-2">
           <img
-            src="/logo.jpg" // replace with your logo
+            src="/logo.jpg"
             alt="Logo"
             className="h-10 w-10 rounded-full object-cover border-2 border-white shadow"
           />
           <div className="flex flex-col leading-tight">
-            <span className="font-extrabold text-lg tracking-tight">Media Gallery</span>
+            <span className="font-extrabold text-lg tracking-tight">
+              Media Gallery
+            </span>
             <span className="text-xs text-teal-200">Your visual archive</span>
           </div>
         </Link>
@@ -84,7 +94,6 @@ export default function Navbar() {
                 )}
               </div>
             </Link>
-           
           </>
         )}
       </div>
@@ -120,24 +129,30 @@ export default function Navbar() {
                   Hi, {user?.name}
                 </div>
                 <svg
-                  className={`h-4 w-4 transition-transform ${openUserMenu ? 'rotate-180' : ''}`}
+                  className={`h-4 w-4 transition-transform ${
+                    openUserMenu ? 'rotate-180' : ''
+                  }`}
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
               {openUserMenu && (
                 <div className="absolute right-0 mt-2 w-52 bg-white text-teal-800 rounded-lg shadow-xl z-50 overflow-hidden ring-1 ring-black ring-opacity-5 animate-enter">
                   <div className="relative px-4 py-2">
-                    {/* Arrow */}
                     <div className="absolute top-0 right-4 -mt-2 w-4 h-4 bg-white rotate-45 shadow-md" />
                     <div className="text-xs mb-1">
-                      Signed in as <strong>{user?.email || user?.name}</strong>
+                      Signed in as{' '}
+                      <strong>{user?.email || user?.name}</strong>
                     </div>
                     <div className="divide-y divide-gray-100">
                       <Link

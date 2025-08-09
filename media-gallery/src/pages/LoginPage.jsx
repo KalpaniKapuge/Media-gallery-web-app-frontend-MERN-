@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../api';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -29,8 +29,10 @@ export default function LoginPage() {
         password: form.password,
       });
 
+      // ✅ Save to localStorage and trigger Navbar update
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+      window.dispatchEvent(new Event('storage')); // 🔥 Notify other components
 
       toast.success('Logged in successfully!');
       navigate('/gallery');
@@ -47,8 +49,8 @@ export default function LoginPage() {
     }
   };
 
-  // Google sign-in
-  useState(() => {
+  // Initialize Google Sign-In button on mount
+  useEffect(() => {
     const initGoogleSignIn = () => {
       if (!window.google) {
         setTimeout(initGoogleSignIn, 100);
@@ -62,8 +64,10 @@ export default function LoginPage() {
             const idToken = response.credential;
             const res = await api.post('/auth/google-login', { idToken });
 
+            // ✅ Save to localStorage and trigger Navbar update
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
+            window.dispatchEvent(new Event('storage')); // 🔥 Notify other components
 
             toast.success('Logged in with Google successfully!');
             navigate('/gallery');
@@ -91,12 +95,19 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-50 to-white px-4">
       <div className="bg-white shadow-xl rounded-2xl p-10 max-w-md w-full border border-teal-100">
-        <h2 className="text-3xl font-bold text-center text-teal-700 mb-4">Welcome Back</h2>
-        <p className="text-center text-sm text-gray-500 mb-6">Login to your account to continue</p>
+        <h2 className="text-3xl font-bold text-center text-teal-700 mb-4">
+          Welcome Back
+        </h2>
+        <p className="text-center text-sm text-gray-500 mb-6">
+          Login to your account to continue
+        </p>
 
         <form onSubmit={submit} className="space-y-5" aria-label="login form">
           <div>
-            <label className="block text-teal-700 font-medium mb-1" htmlFor="email">
+            <label
+              className="block text-teal-700 font-medium mb-1"
+              htmlFor="email"
+            >
               Email Address
             </label>
             <input
@@ -106,7 +117,9 @@ export default function LoginPage() {
               placeholder="you@example.com"
               type="email"
               value={form.email}
-              onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, email: e.target.value }))
+              }
               className="border border-teal-300 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all"
               disabled={loading}
               autoComplete="email"
@@ -114,7 +127,10 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-teal-700 font-medium mb-1" htmlFor="password">
+            <label
+              className="block text-teal-700 font-medium mb-1"
+              htmlFor="password"
+            >
               Password
             </label>
             <input
@@ -124,7 +140,9 @@ export default function LoginPage() {
               placeholder="••••••••"
               type="password"
               value={form.password}
-              onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, password: e.target.value }))
+              }
               className="border border-teal-300 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all"
               disabled={loading}
               autoComplete="current-password"
@@ -133,7 +151,10 @@ export default function LoginPage() {
 
           <div className="flex justify-between items-center">
             <div></div>
-            <Link to="/forgot-password" className="text-sm text-teal-600 hover:underline transition-colors">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-teal-600 hover:underline transition-colors"
+            >
               Forgot password?
             </Link>
           </div>
@@ -143,7 +164,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-teal-600 text-white py-2 rounded-lg font-semibold hover:bg-teal-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Login in...' : 'Login'}
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 
@@ -153,11 +174,15 @@ export default function LoginPage() {
           <div className="flex-1 h-px bg-gray-300" />
         </div>
 
+        {/* Google Sign-In Button container */}
         <div id="googleSignInDiv" className="flex justify-center" />
 
         <p className="text-center text-gray-500 text-sm mt-6">
           Don't have an account?{' '}
-          <Link to="/register" className="text-teal-600 font-medium hover:underline transition-colors">
+          <Link
+            to="/register"
+            className="text-teal-600 font-medium hover:underline transition-colors"
+          >
             Register
           </Link>
         </p>

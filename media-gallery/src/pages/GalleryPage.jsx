@@ -12,19 +12,24 @@ export default function GalleryPage() {
   const [filterTags, setFilterTags] = useState('');
   const debounceRef = useRef(null);
 
-  // Memoized gallery loader to capture latest search/filter
   const loadGallery = useCallback(async () => {
     try {
       setLoading(true);
 
       const params = {};
       if (searchTerm.trim()) params.search = searchTerm.trim();
-      if (filterTags.trim()) params.tags = filterTags.trim();
+      if (filterTags.trim()) {
+        // Split tags into array, trim whitespace, filter out empty
+        params.tags = filterTags
+          .split(',')
+          .map(tag => tag.trim())
+          .filter(Boolean);
+      }
 
       console.log('Loading gallery with params:', params);
+
       const res = await api.get('/media/gallery', { params });
 
-      console.log('Gallery response:', res.data);
       const mediaData = res.data.data || res.data;
       setMedia(Array.isArray(mediaData) ? mediaData : []);
     } catch (error) {
@@ -37,12 +42,10 @@ export default function GalleryPage() {
     }
   }, [searchTerm, filterTags]);
 
-  // Initial load
   useEffect(() => {
     loadGallery();
   }, [loadGallery]);
 
-  // Debounce when searchTerm or filterTags change
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -53,50 +56,48 @@ export default function GalleryPage() {
     };
   }, [searchTerm, filterTags, loadGallery]);
 
-  // Handle file upload via dropzone
-  const onDrop = useCallback(async (acceptedFiles) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
+  const onDrop = useCallback(
+    async (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('title', file.name.split('.')[0]);
-    formData.append('description', 'Uploaded via drag and drop');
-    formData.append('tags', 'upload');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', file.name.split('.')[0]);
+      formData.append('description', 'Uploaded via drag and drop');
+      formData.append('tags', 'upload');
 
-    setUploading(true);
-    try {
-      console.log('Uploading file:', file.name);
-      const res = await api.post('/media/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      setUploading(true);
+      try {
+        const res = await api.post('/media/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
 
-      console.log('Upload successful:', res.data);
-      toast.success('File uploaded successfully!');
-      await loadGallery();
-    } catch (error) {
-      console.error('Upload failed:', error);
-      const errorMessage = error?.response?.data?.error || 'Upload failed';
-      toast.error(errorMessage);
-    } finally {
-      setUploading(false);
-    }
-  }, [loadGallery]);
+        toast.success('File uploaded successfully!');
+        await loadGallery();
+      } catch (error) {
+        console.error('Upload failed:', error);
+        const errorMessage = error?.response?.data?.error || 'Upload failed';
+        toast.error(errorMessage);
+      } finally {
+        setUploading(false);
+      }
+    },
+    [loadGallery]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
       'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp'],
     },
-    maxSize: 10 * 1024 * 1024, // 10 MB max
+    maxSize: 10 * 1024 * 1024,
     multiple: false,
   });
 
   const toggleSelect = (id) => {
     setSelected((prev) =>
-      prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
@@ -110,7 +111,6 @@ export default function GalleryPage() {
 
   const deleteSelected = async () => {
     if (!selected.length) return;
-
     if (!window.confirm(`Delete ${selected.length} selected items?`)) return;
 
     try {
@@ -132,7 +132,6 @@ export default function GalleryPage() {
     }
 
     try {
-      console.log('Downloading ZIP for:', selected);
       const res = await api.post(
         '/media/download-zip',
         { ids: selected },
@@ -311,7 +310,7 @@ export default function GalleryPage() {
                 <img
                   src={item.url}
                   alt={item.title}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-full object-cover bg-gray-900 "
                   loading="lazy"
                 />
                 <div className="absolute top-2 left-2">
