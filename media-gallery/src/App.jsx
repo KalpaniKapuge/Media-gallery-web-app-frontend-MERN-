@@ -9,11 +9,10 @@ import HomePage from '../src/pages/HomePage.jsx';
 import Navbar from '../src/components/Navbar.jsx';
 import ForgotPasswordPage from '../src/pages/ForgotPassword.jsx';
 import ResetPasswordPage from '../src/pages/ResetPassword.jsx';
-import MyMessages from '../src/components/MyMessages.jsx';
-import AdminMessagesList from '../src/components/AdminMessageList.jsx';
+import MyMessages from '../src/pages/MyMessages.jsx'; // Fixed: Changed from components to pages
+import AdminMessageList from '../src/components/AdminMessageList.jsx';
 import ContactPage from '../src/pages/ContactPage.jsx';
 import { Toaster } from 'react-hot-toast';
-
 
 export default function App() {
   return (
@@ -64,7 +63,7 @@ export default function App() {
               />
 
               <Route
-                path="/my-messages"
+                path="/contact/my-messages"
                 element={
                   <ProtectedRoute>
                     <MyMessages />
@@ -85,7 +84,7 @@ export default function App() {
                 path="/admin/contact-messages"
                 element={
                   <ProtectedRoute requireAdmin={true}>
-                    <AdminMessagesList />
+                    <AdminMessageList />
                   </ProtectedRoute>
                 }
               />
