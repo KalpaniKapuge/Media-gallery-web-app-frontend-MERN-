@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
+import Swal from "sweetalert2";
 import ZipPanel from '../components/ZipPanel';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+
 
 export default function MediaGalleryPage() {
   const [media, setMedia] = useState([]);
@@ -47,50 +50,144 @@ export default function MediaGalleryPage() {
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const selectAll = () => setSelected(media.map((m) => m._id));
   const clearSelection = () => setSelected([]);
-
-  const deleteItem = async (id) => {
-    if (!window.confirm('Delete this item?')) return;
-    try {
-      await api.delete(`/media/${id}`);
-      toast.success('Deleted');
-      await load();
-      setSelected((s) => s.filter((x) => x !== id));
-    } catch (err) {
-      console.error('delete error', err);
-      toast.error('Delete failed');
+const deleteItem = async (id) => {
+  const result = await Swal.fire({
+    title: "Delete?",
+    text: "This media will be removed permanently.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#F33939FF", // teal
+    cancelButtonColor: "#C0C2C4FF", // gray
+    confirmButtonText: "Yes,delete",
+    cancelButtonText: "No,cancel",
+    width: "300px",
+    background: "#F9FAFBFB", // light teal background
+    customClass: {
+      popup: "rounded-lg shadow-lg text-sm",
+      title: "text-lg font-bold",
+      confirmButton: "px-3 py-1 rounded font-semibold",
+      cancelButton: "px-3 py-1 rounded font-semibold",
+    },
+    showClass: {
+      popup: "animate__animated animate__fadeInDown animate__faster"
+    },
+    hideClass: {
+      popup: "animate__animated animate__fadeOutUp animate__faster"
     }
-  };
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await api.delete(`/media/${id}`);
+    toast.success("Deleted");
+    await load();
+    setSelected((s) => s.filter((x) => x !== id));
+  } catch (err) {
+    console.error("delete error", err);
+    toast.error("Delete failed");
+  }
+};
 
   const bulkDelete = async () => {
-    if (!selected.length) return;
-    if (!window.confirm(`Delete ${selected.length} items?`)) return;
-    try {
-      await Promise.all(selected.map((id) => api.delete(`/media/${id}`)));
-      toast.success('Deleted selected items');
-      setSelected([]);
-      await load();
-    } catch (err) {
-      console.error('bulk delete', err);
-      toast.error('Failed to delete some items');
-    }
+  if (!selected.length) return;
+
+  const result = await Swal.fire({
+    title: `Delete ${selected.length} items?`,
+    text: "These media files will be permanently removed.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#F33939FF", // red for delete
+    cancelButtonColor: "#C0C2C4FF", // gray
+    confirmButtonText: "Yes, delete",
+    cancelButtonText: "No, cancel",
+    width: "300px",
+    background: "#F9FAFBFB", // light teal background
+    customClass: {
+      popup: "rounded-lg shadow-lg text-sm",
+      title: "text-lg font-bold",
+      confirmButton: "px-3 py-1 rounded font-semibold cursor-pointer",
+      cancelButton: "px-3 py-1 rounded font-semibold cursor-pointer",
+    },
+    showClass: {
+      popup: "animate__animated animate__fadeInDown animate__faster",
+    },
+    hideClass: {
+      popup: "animate__animated animate__fadeOutUp animate__faster",
+    },
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await Promise.all(selected.map((id) => api.delete(`/media/${id}`)));
+    toast.success("Deleted selected items");
+    setSelected([]);
+    await load();
+  } catch (err) {
+    console.error("bulk delete", err);
+    toast.error("Failed to delete some items");
+  }
+};
+
+
+ const editItem = async (item) => {
+  const swalOptions = {
+    width: "260px", 
+    background: "#F9FAFBFB", 
+    confirmButtonColor: "#0982A0FF", 
+    cancelButtonColor: "#C0C2C4FF", 
+    showCancelButton: true,
+    reverseButtons: true, 
+   customClass: {
+  popup: "rounded-lg shadow-lg text-sm",
+  title: "text-lg font-bold text-gray-800",
+  confirmButton: "px-2.5 py-1.5 text-xs rounded font-semibold cursor-pointer",
+  cancelButton: "px-2.5 py-1.5 text-xs rounded font-semibold cursor-pointer"
+},
+inputAttributes: {
+  class:
+    "text-sm p-1.5 rounded border-2 border-teal-500 focus:border-teal-600 focus:ring focus:ring-teal-400 focus:ring-opacity-50 outline-none"
+},
+
+    showClass: { popup: "animate__animated animate__fadeInDown animate__faster" },
+    hideClass: { popup: "animate__animated animate__fadeOutUp animate__faster" }
   };
 
-  const editItem = async (item) => {
-    const title = window.prompt('Title', item.title || '');
-    if (title === null) return;
-    const description = window.prompt('Description', item.description || '');
-    if (description === null) return;
-    const tagStr = window.prompt('Tags (comma separated)', (item.tags || []).join(', '));
-    if (tagStr === null) return;
-    try {
-      await api.put(`/media/${item._id}`, { title, description, tags: tagStr });
-      toast.success('Updated');
-      await load();
-    } catch (err) {
-      console.error('edit failed', err);
-      toast.error('Update failed');
-    }
-  };
+  const { value: title } = await Swal.fire({
+    ...swalOptions,
+    title: "Edit Title",
+    input: "text",
+    inputValue: item.title || "",
+  });
+  if (title === undefined) return;
+
+  const { value: description } = await Swal.fire({
+    ...swalOptions,
+    title: "Edit Description",
+    input: "textarea",
+    inputValue: item.description || "",
+  });
+  if (description === undefined) return;
+
+  const { value: tagStr } = await Swal.fire({
+    ...swalOptions,
+    title: "Edit Tags",
+    input: "text",
+    inputValue: (item.tags || []).join(", "),
+  });
+  if (tagStr === undefined) return;
+
+  try {
+    await api.put(`/media/${item._id}`, { title, description, tags: tagStr });
+    toast.success("Updated");
+    await load();
+  } catch (err) {
+    console.error("edit failed", err);
+    toast.error("Update failed");
+  }
+};
+
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -167,7 +264,7 @@ export default function MediaGalleryPage() {
               key={item._id}
               className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col text-sm ${
                 selected.includes(item._id)
-                  ? 'ring-4 ring-teal-600 ring-opacity-50'
+                  ? 'ring-3 ring-teal-600 ring-opacity-50'
                   : 'ring-1 ring-transparent'
               } transition-all duration-200`}
             >
@@ -222,22 +319,24 @@ export default function MediaGalleryPage() {
                 )}
 
                 <div className="mt-3 flex gap-2 justify-end flex-wrap">
-                  <button
-                    onClick={() => editItem(item)}
-                    className="text-xs px-2 py-1 bg-cyan-600 hover:bg-cyan-900 hover:text-white not-only:transition rounded shadow-sm font-medium cursor-pointer"
-                    type="button"
-                    aria-label={`Edit ${item.title}`}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteItem(item._id)}
-                    className="text-xs px-2 py-1 bg-red-300 hover:bg-red-500 hover:text-white  transition rounded shadow-sm font-medium cursor-pointer"
-                    type="button"
-                    aria-label={`Delete ${item.title}`}
-                  >
-                    Delete
-                  </button>
+                 <button
+                onClick={() => editItem(item)}
+                className="p-1 bg-white text-teal-700  hover:bg-cyan-900 hover:text-white border-teal-600  border-1 rounded shadow-2xl cursor-pointer"
+                type="button"
+                aria-label={`Edit ${item.title}`}
+              >
+                <PencilIcon className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => deleteItem(item._id)}
+                className="p-1 bg-white text-red-500 hover:bg-red-500 hover:text-white border-red-500 border rounded shadow-sm cursor-pointer"
+                type="button"
+                aria-label={`Delete ${item.title}`}
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+
                 </div>
               </div>
             </div>
