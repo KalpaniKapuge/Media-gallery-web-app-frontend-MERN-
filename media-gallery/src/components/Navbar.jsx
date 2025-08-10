@@ -14,6 +14,7 @@ export default function Navbar() {
     const updateUser = () => {
       try {
         const stored = JSON.parse(localStorage.getItem('user') || 'null');
+        console.log('Loaded user from localStorage:', stored); // For debugging
         setUser(stored);
       } catch {
         setUser(null);
@@ -21,8 +22,18 @@ export default function Navbar() {
     };
 
     updateUser(); // run on mount
-    window.addEventListener('storage', updateUser); // listen for updates
-    return () => window.removeEventListener('storage', updateUser);
+
+    // Listen for both storage events (cross-tab) and custom events (same-tab)
+    const handleStorageChange = () => updateUser();
+    const handleUserDataChange = () => updateUser();
+
+    window.addEventListener('storage', handleStorageChange); // cross-tab updates
+    window.addEventListener('userDataChanged', handleUserDataChange); // same-tab updates
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userDataChanged', handleUserDataChange);
+    };
   }, []);
 
   // Close dropdown when clicking outside
@@ -38,8 +49,12 @@ export default function Navbar() {
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeUser('user');
     setUser(null);
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new Event('userDataChanged'));
+    
     toast.success('Logged out successfully');
     navigate('/login');
   };
@@ -122,7 +137,25 @@ export default function Navbar() {
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition rounded-full px-3 py-1 text-sm font-medium backdrop-blur-sm"
                 aria-label="User menu"
               >
-                <div className="h-8 w-8 flex items-center justify-center bg-gradient-to-r from-green-300 to-teal-400 rounded-full text-xs font-semibold uppercase text-white">
+                {user?.profilePic ? (
+                  <img
+                    src={user.profilePic}
+                    alt="Profile"
+                    className="h-8 w-8 rounded-full object-cover"
+                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      console.log('Profile image failed to load:', user.profilePic);
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.style.display = 'none';
+                      // Show fallback div
+                      const fallback = e.currentTarget.nextElementSibling;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className={`h-8 w-8 flex items-center justify-center bg-gradient-to-r from-green-300 to-teal-400 rounded-full text-xs font-semibold uppercase text-white ${user?.profilePic ? 'hidden' : 'flex'}`}
+                >
                   {user?.name?.[0] || 'U'}
                 </div>
                 <div className="hidden sm:block text-sm text-white">
@@ -138,11 +171,7 @@ export default function Navbar() {
                   viewBox="0 0 24 24"
                   aria-hidden="true"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
@@ -151,8 +180,7 @@ export default function Navbar() {
                   <div className="relative px-4 py-2">
                     <div className="absolute top-0 right-4 -mt-2 w-4 h-4 bg-white rotate-45 shadow-md" />
                     <div className="text-xs mb-1">
-                      Signed in as{' '}
-                      <strong>{user?.email || user?.name}</strong>
+                      Signed in as <strong>{user?.email || user?.name}</strong>
                     </div>
                     <div className="divide-y divide-gray-100">
                       <Link
