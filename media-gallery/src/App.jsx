@@ -15,6 +15,7 @@ import ImageDetailPage from '../src/pages/ImageDetailsPage.jsx';
 import Dashboard from '../src/pages/Dashboard.jsx';
 import AdminMessageList from '../src/components/AdminMessageList.jsx';
 import ContactPage from '../src/pages/ContactPage.jsx';
+import ProfilePage from '../src/pages/profilePage.jsx';
 import { Toaster } from 'react-hot-toast';
 
 export default function App() {
@@ -47,7 +48,8 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-             <Route path="/gallery" element={<ProtectedRoute><MediaGalleryPage /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/gallery" element={<ProtectedRoute><MediaGalleryPage /></ProtectedRoute>} />
               <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
               <Route path="/image/:id" element={<ProtectedRoute><ImageDetailPage /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
