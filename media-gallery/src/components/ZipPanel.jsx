@@ -48,17 +48,17 @@ export default function ZipPanel({ selectedIds = [], onDownloaded = () => {} }) 
   };
 
   return (
-    <div className="p-4 bg-white rounded shadow flex items-center justify-between">
+    <div className="p-4 bg-gray-200 rounded shadow flex items-center justify-between">
       <div>
-        <div className="text-sm text-gray-600">Selected: <strong>{selectedIds?.length || 0}</strong></div>
-        <div className="text-xs text-gray-400">You can download selected items as a ZIP.</div>
+        <div className="text-sm text-gray-700">Selected: <strong>{selectedIds?.length || 0}</strong></div>
+        <div className="text-xs text-gray-500">You can download selected items as a ZIP.</div>
       </div>
       <div>
         <button
           onClick={downloadZip}
           disabled={downloading || selectedIds.length === 0}
           className={`px-3 py-2 rounded ${
-            downloading || selectedIds.length === 0 ? 'bg-gray-200' : 'bg-green-600 text-white'
+            downloading || selectedIds.length === 0 ? 'bg-gray-400' : 'bg-teal-800 text-white cursor-pointer'
           }`}
         >
           {downloading ? 'Downloading...' : `Download ZIP (${selectedIds.length})`}

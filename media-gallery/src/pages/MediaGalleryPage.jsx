@@ -101,7 +101,7 @@ export default function MediaGalleryPage() {
             href="/upload"
             className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 transition text-white font-semibold rounded shadow cursor-pointer text-sm sm:text-base"
           >
-            Upload
+            + Upload Media
           </a>
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function MediaGalleryPage() {
         />
         <button
           onClick={load}
-          className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded shadow text-sm font-semibold transition cursor-pointer"
+          className="px-4 py-2 bg-gray-300 hover:bg-gray-500 hover:text-white rounded shadow text-sm font-semibold transition cursor-pointer"
         >
           Apply
         </button>
@@ -131,13 +131,13 @@ export default function MediaGalleryPage() {
         <span className="text-sm text-gray-600">{selected.length} selected</span>
         <button
           onClick={selectAll}
-          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 transition text-white rounded text-xs font-medium shadow cursor-pointer"
+          className="px-2 py-1 bg-cyan-700 hover:bg-cyan-500 hover:text-black transition text-white rounded text-xs font-medium shadow cursor-pointer"
         >
           Select all
         </button>
         <button
           onClick={clearSelection}
-          className="px-2 py-1 bg-teal-200 hover:bg-teal-300 rounded text-xs font-medium shadow cursor-pointer"
+          className="px-2 py-1 text-white  bg-teal-600 hover:bg-teal-400 hover:text-black rounded text-xs font-medium shadow cursor-pointer"
         >
           Clear
         </button>
@@ -146,7 +146,7 @@ export default function MediaGalleryPage() {
           disabled={!selected.length}
           className={`px-2 py-1 rounded text-xs font-medium shadow transition ${
             selected.length
-              ? 'bg-red-600 hover:bg-red-700 text-white cursor-pointer'
+              ? 'bg-red-600 hover:bg-red-300 hover:text-black/90  text-white cursor-pointer'
               : 'bg-red-300 text-white cursor-not-allowed'
           }`}
         >
@@ -167,7 +167,7 @@ export default function MediaGalleryPage() {
               key={item._id}
               className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col text-sm ${
                 selected.includes(item._id)
-                  ? 'ring-4 ring-blue-400 ring-opacity-50'
+                  ? 'ring-4 ring-teal-600 ring-opacity-50'
                   : 'ring-1 ring-transparent'
               } transition-all duration-200`}
             >
@@ -180,7 +180,7 @@ export default function MediaGalleryPage() {
                     loading="lazy"
                   />
                 </a>
-                <div className="absolute top-2 left-2 bg-white bg-opacity-90 rounded p-[2px]">
+                <div className="absolute top-2 left-2 bg-opacity-90 rounded p-[2px]">
                   <input
                     type="checkbox"
                     checked={selected.includes(item._id)}
@@ -224,7 +224,7 @@ export default function MediaGalleryPage() {
                 <div className="mt-3 flex gap-2 justify-end flex-wrap">
                   <button
                     onClick={() => editItem(item)}
-                    className="text-xs px-2 py-1 bg-blue-100 hover:bg-blue-200 transition rounded shadow-sm font-medium cursor-pointer"
+                    className="text-xs px-2 py-1 bg-cyan-600 hover:bg-cyan-900 hover:text-white not-only:transition rounded shadow-sm font-medium cursor-pointer"
                     type="button"
                     aria-label={`Edit ${item.title}`}
                   >
@@ -232,7 +232,7 @@ export default function MediaGalleryPage() {
                   </button>
                   <button
                     onClick={() => deleteItem(item._id)}
-                    className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 transition rounded shadow-sm font-medium cursor-pointer"
+                    className="text-xs px-2 py-1 bg-red-300 hover:bg-red-500 hover:text-white  transition rounded shadow-sm font-medium cursor-pointer"
                     type="button"
                     aria-label={`Delete ${item.title}`}
                   >
