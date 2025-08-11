@@ -98,27 +98,39 @@ export default function Navbar() {
 
       {/* Center: Primary Links */}
       <div className="flex-1 flex justify-center gap-8">
-        {user && (
-          <>
-            <Link to="/gallery" className={navItemClass('/gallery')}>
-              <div className="relative">
-                Gallery
-                {location.pathname === '/gallery' && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-green-300 to-teal-400" />
-                )}
-              </div>
-            </Link>
-            <Link to="/contact" className={navItemClass('/contact')}>
-              <div className="relative">
-                Contact
-                {location.pathname === '/contact' && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-green-300 to-teal-400" />
-                )}
-              </div>
-            </Link>
-          </>
-        )}
-      </div>
+  {user && (
+    <>
+      <Link to="/gallery" className={navItemClass('/gallery')}>
+        <div className="relative">
+          Gallery
+          {location.pathname === '/gallery' && (
+            <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-green-300 to-teal-400" />
+          )}
+        </div>
+      </Link>
+
+      <Link to="/contact" className={navItemClass('/contact')}>
+        <div className="relative">
+          Contact
+          {location.pathname === '/contact' && (
+            <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-green-300 to-teal-400" />
+          )}
+        </div>
+      </Link>
+
+      {/* New Link for My Messages */}
+      <Link to="/my-messages" className={navItemClass('/my-messages')}>
+        <div className="relative">
+          My Messages
+          {location.pathname === '/my-messages' && (
+            <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-green-300 to-teal-400" />
+          )}
+        </div>
+      </Link>
+    </>
+  )}
+</div>
+
 
       {/* Right: Admin / User */}
       <div className="flex items-center gap-4 flex-shrink-0 relative">

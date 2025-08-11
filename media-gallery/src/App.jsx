@@ -42,54 +42,43 @@ export default function App() {
           <Navbar />
           <div className="flex-grow">
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+              {/* User protected routes */}
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/gallery" element={<ProtectedRoute><MediaGalleryPage /></ProtectedRoute>} />
               <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
               <Route path="/image/:id" element={<ProtectedRoute><ImageDetailPage /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/contact" element={<ProtectedRoute><ContactPage /></ProtectedRoute>} />
 
-              <Route
-                path="/contact"
-                element={
-                  <ProtectedRoute>
-                    <ContactPage />
-                  </ProtectedRoute>
-                }
-              />
-
+              {/* My Messages routes */}
               <Route
                 path="/contact/my-messages"
-                element={
-                  <ProtectedRoute>
-                    <MyMessages />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute><MyMessages /></ProtectedRoute>}
+              />
+              {/* Optional shortcut route for convenience */}
+              <Route
+                path="/my-messages"
+                element={<ProtectedRoute><MyMessages /></ProtectedRoute>}
               />
 
+              {/* Admin protected routes */}
               <Route
                 path="/admin/users"
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminUsers />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute requireAdmin={true}><AdminUsers /></ProtectedRoute>}
               />
-
               <Route
                 path="/admin/contact-messages"
-                element={
-                  <ProtectedRoute requireAdmin={true}>
-                    <AdminMessageList />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute requireAdmin={true}><AdminMessageList /></ProtectedRoute>}
               />
 
+              {/* Unauthorized & fallback */}
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
