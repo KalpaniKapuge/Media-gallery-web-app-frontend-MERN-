@@ -1,7 +1,16 @@
-// src/pages/ContactPage.jsx
 import ContactForm from '../components/ContactForm.jsx';
+import { useNavigate } from 'react-router-dom';
 
 export default function ContactPage() {
+  const navigate = useNavigate();
+
+  const handleMessageSent = (newMessage) => {
+    // Dispatch custom event to notify MyMessages to reload
+    window.dispatchEvent(new Event('messageSent'));
+    // Navigate to the correct path with new message in state
+    navigate('/contact/my-messages', { state: { newMessage } });
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-teal-600 to-cyan-700 relative overflow-hidden p-8 text-white">
       {/* Background blobs */}
@@ -14,7 +23,7 @@ export default function ContactPage() {
 
         <section aria-labelledby="contact-form-heading" className="mb-12">
           <h2 id="contact-form-heading" className="sr-only">Contact Form</h2>
-          <ContactForm />
+          <ContactForm onMessageSent={handleMessageSent} />
         </section>
       </div>
 

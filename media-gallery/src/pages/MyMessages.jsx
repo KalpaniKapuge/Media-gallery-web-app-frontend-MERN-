@@ -1,5 +1,5 @@
-// src/pages/MyMessages.jsx
 import { useEffect, useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import MessageList from '../components/MessageList.jsx';
 import api from '../api.js';
 import toast from 'react-hot-toast';
@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 export default function MyMessages() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   const loadMessages = useCallback(async () => {
     try {
@@ -25,17 +26,47 @@ export default function MyMessages() {
   }, []);
 
   useEffect(() => {
+    // Check for newMessage in navigation state
+    const newMessage = location.state?.newMessage;
+    if (newMessage) {
+      console.log('📬 New message from navigation state:', newMessage);
+      setMessages((prevMessages) => {
+        // Avoid duplicate messages
+        if (!prevMessages.some((msg) => msg._id === newMessage._id)) {
+          return [newMessage, ...prevMessages];
+        }
+        return prevMessages;
+      });
+    }
+    // Load messages from API
     loadMessages();
+  }, [loadMessages, location.state]);
+
+  useEffect(() => {
+    const handleMessageSent = () => {
+      console.log('MyMessages: messageSent event triggered');
+      loadMessages();
+    };
+    window.addEventListener('messageSent', handleMessageSent);
+    return () => window.removeEventListener('messageSent', handleMessageSent);
   }, [loadMessages]);
 
   const handleMessageDeleted = (deletedId) => {
-    setMessages(prevMessages => prevMessages.filter(msg => msg._id !== deletedId));
+    setMessages((prevMessages) => prevMessages.filter((msg) => msg._id !== deletedId));
     toast.success('Message deleted successfully');
+  };
+
+  const handleMessageUpdated = (updatedMessage) => {
+    setMessages((prevMessages) =>
+      prevMessages.map((msg) =>
+        msg._id === updatedMessage._id ? updatedMessage : msg
+      )
+    );
+    toast.success('Message updated successfully');
   };
 
   return (
     <main className="min-h-screen p-8 text-white bg-gradient-to-br from-teal-600 to-cyan-700">
-      {/* Background blobs */}
       <div className="absolute -top-20 -left-20 w-72 h-72 bg-cyan-400 rounded-full opacity-20 animate-blob"></div>
       <div className="absolute top-40 right-0 w-96 h-96 bg-teal-400 rounded-full opacity-15 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-10 left-20 w-48 h-48 bg-cyan-300 rounded-full opacity-25 animate-blob animation-delay-4000"></div>
@@ -58,6 +89,7 @@ export default function MyMessages() {
           <MessageList 
             messages={messages} 
             onMessageDeleted={handleMessageDeleted}
+            onMessageUpdated={handleMessageUpdated}
             adminView={false}
           />
         )}

@@ -183,23 +183,23 @@ export default function Navbar() {
               </button>
 
               {openUserMenu && (
-                <div className="absolute right-0 mt-2 w-52 bg-white text-teal-800 rounded-lg shadow-xl z-50 overflow-hidden ring-1 ring-black ring-opacity-5 animate-enter">
+                <div className="absolute right-0 mt-2 w-52 bg-white text-teal-800 rounded-lg shadow-xl z-50 overflow-hidden ring-1 ring-teal-900 ring-opacity-5 animate-enter">
                   <div className="relative px-4 py-2">
                     <div className="absolute top-0 right-4 -mt-2 w-4 h-4 bg-white rotate-45 shadow-md" />
                     <div className="text-xs mb-1">
                       Signed in as <strong>{user?.email || user?.name}</strong>
                     </div>
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-teal-100">
                       <Link
                         to="/profile"
-                        className="block px-4 py-2 hover:bg-gray-200 text-sm"
+                        className="block px-4 py-2 hover:bg-gray-300 text-sm"
                         onClick={() => setOpenUserMenu(false)}
                       >
                         Profile
                       </Link>
                       <button
                         onClick={logout}
-                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                        className="w-full text-left px-4 py-2 hover:bg-gray-300 text-sm"
                       >
                         Logout
                       </button>

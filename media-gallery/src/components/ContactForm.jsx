@@ -19,9 +19,12 @@ export default function ContactForm({ onMessageSent }) {
       console.log('✅ Message sent successfully:', res.data);
       toast.success('Message sent successfully!');
       setForm({ name: '', email: '', message: '' });
-      if (onMessageSent) {
-        onMessageSent(res.data.data); // Pass the actual contact data
-      }
+      // Add a slight delay to ensure backend sync
+      setTimeout(() => {
+        if (onMessageSent) {
+          onMessageSent(res.data.data);
+        }
+      }, 500); // 500ms delay
     } catch (err) {
       console.error('❌ Contact submit error:', err);
       const msg =
