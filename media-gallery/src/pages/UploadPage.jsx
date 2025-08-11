@@ -3,8 +3,7 @@ import api from "../api";
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import toast from "react-hot-toast";
-import { CloudArrowUpIcon } from "@heroicons/react/24/outline"; // Heroicons for upload icon
-
+import { CloudArrowUpIcon } from "@heroicons/react/24/outline"; 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState("");

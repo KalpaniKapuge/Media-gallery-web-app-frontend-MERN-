@@ -1,8 +1,8 @@
-// profilePage.jsx
+
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import api from '../api'; // your axios instance
+import api from '../api'; 
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -55,7 +55,7 @@ export default function ProfilePage() {
 
   const uploadProfilePic = async (formData) => {
     try {
-      console.log('📸 Uploading profile picture...');
+      console.log('Uploading profile picture...');
       
       // Get token for authentication
       const token = localStorage.getItem('token');
@@ -70,11 +70,11 @@ export default function ProfilePage() {
         },
       });
 
-      console.log('✅ Upload successful:', response.data);
+      console.log('Upload successful:', response.data);
       return response;
       
     } catch (error) {
-      console.error('❌ Upload failed:', error);
+      console.error(' Upload failed:', error);
       
       if (error.response?.status === 401) {
         toast.error('Please log in again');
@@ -119,7 +119,7 @@ export default function ProfilePage() {
       const formData = new FormData();
       formData.append('profilePic', file);
 
-      console.log('📁 Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
+      console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
 
       // Upload to server
       const response = await uploadProfilePic(formData);
@@ -176,7 +176,7 @@ export default function ProfilePage() {
         profilePic: form.profilePic,
       };
 
-      console.log('💾 Updating profile with payload:', payload);
+      console.log('Updating profile with payload:', payload);
 
       const response = await api.put('/users/profile', payload, {
         headers: {
@@ -186,7 +186,7 @@ export default function ProfilePage() {
 
       if (response.data.success) {
         const updatedUser = response.data.user;
-        console.log('✅ Profile updated:', updatedUser);
+        console.log('Profile updated:', updatedUser);
 
         updateUserInStorage(updatedUser);
 
@@ -214,7 +214,7 @@ export default function ProfilePage() {
       }
 
     } catch (error) {
-      console.error('❌ Submit error:', error);
+      console.error(' Submit error:', error);
       
       if (error.response?.status === 401) {
         toast.error('Please log in again');
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                       className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                       crossOrigin="anonymous"
                       onError={(e) => {
-                        console.log('❌ Image failed to load:', preview);
+                        console.log(' Image failed to load:', preview);
                         e.currentTarget.onerror = null;
                         setPreview('');
                       }}

@@ -12,12 +12,12 @@ export default function MyMessages() {
   const loadMessages = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('📥 Loading user messages...');
+      console.log('Loading user messages...');
       const res = await api.get('/contact/my-messages');
-      console.log('📋 Received messages:', res.data);
+      console.log('Received messages:', res.data);
       setMessages(res.data.data || []);
     } catch (err) {
-      console.error('❌ Failed to load messages:', err);
+      console.error(' Failed to load messages:', err);
       const errorMessage = err?.response?.data?.error || 'Failed to load messages';
       toast.error(errorMessage);
     } finally {
@@ -28,7 +28,7 @@ export default function MyMessages() {
   useEffect(() => {
     const newMessage = location.state?.newMessage;
     if (newMessage) {
-      console.log('📬 New message from navigation state:', newMessage);
+      console.log('New message from navigation state:', newMessage);
       setMessages((prevMessages) => {
         if (!prevMessages.some((msg) => msg._id === newMessage._id)) {
           return [newMessage, ...prevMessages];

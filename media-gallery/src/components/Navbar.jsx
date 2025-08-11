@@ -100,6 +100,14 @@ export default function Navbar() {
       <div className="flex-1 flex justify-center gap-8">
   {user && (
     <>
+      <Link to="/dashboard" className={navItemClass('/dashboard')}>
+          <div className="relative">
+          Dashboard
+          {location.pathname === '/dashboard' && (
+            <span className="absolute -bottom-1 left-0 right-0 h-1 rounded-full bg-gradient-to-r from-green-300 to-teal-400" />
+          )}
+        </div>
+      </Link>
       <Link to="/gallery" className={navItemClass('/gallery')}>
         <div className="relative">
           Gallery
@@ -138,6 +146,7 @@ export default function Navbar() {
           <>
             {isAdmin && (
               <div className="flex gap-4">
+                
                 <Link to="/admin/users" className={navItemClass('/admin/users')}>
                   Users
                 </Link>
@@ -229,6 +238,7 @@ export default function Navbar() {
             <Link to="/register" className={navItemClass('/register')}>
               Register
             </Link>
+
           </>
         )}
       </div>

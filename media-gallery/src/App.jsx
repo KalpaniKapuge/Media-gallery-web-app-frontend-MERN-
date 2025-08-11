@@ -78,6 +78,17 @@ export default function App() {
                 element={<ProtectedRoute requireAdmin={true}><AdminMessageList /></ProtectedRoute>}
               />
 
+              {/* Dashbord routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+/>
+
+
               {/* Unauthorized & fallback */}
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="*" element={<Navigate to="/" replace />} />
