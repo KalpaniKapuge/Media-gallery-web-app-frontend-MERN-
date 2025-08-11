@@ -9,6 +9,12 @@ const api = axios.create({
   },
 });
 
+export const uploadProfilePic = (formData) => {
+  return api.post('/media/upload-profile', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
 
 api.interceptors.request.use(
   (config) => {

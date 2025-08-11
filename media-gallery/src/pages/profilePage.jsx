@@ -1,3 +1,4 @@
+// profilePage.jsx
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -24,9 +25,16 @@ export default function ProfilePage() {
           email: storedUser.email || '',
           profilePic: storedUser.profilePic || '',
         });
-        setPreview(storedUser.profilePic || '');
+        // Set preview, but handle undefined/null cases
+        const profilePicUrl = storedUser.profilePic;
+        if (profilePicUrl && profilePicUrl !== 'undefined' && profilePicUrl !== '/uploads/default-avatar.png') {
+          setPreview(profilePicUrl);
+        } else {
+          setPreview('');
+        }
       }
-    } catch {
+    } catch (error) {
+      console.error('Error loading user data:', error);
       navigate('/login');
     } finally {
       setLoading(false);
@@ -45,44 +53,102 @@ export default function ProfilePage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
-  const handleFileChange = (e) => {
+  const uploadProfilePic = async (formData) => {
+    try {
+      console.log('📸 Uploading profile picture...');
+      
+      // Get token for authentication
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await api.post('/media/upload-profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        },
+      });
+
+      console.log('✅ Upload successful:', response.data);
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Upload failed:', error);
+      
+      if (error.response?.status === 401) {
+        toast.error('Please log in again');
+        navigate('/login');
+      } else {
+        const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
+        toast.error(errorMessage);
+      }
+      
+      throw error;
+    }
+  };
+
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      toast.error('Only JPG, PNG or WEBP files are allowed');
+      toast.error('Only JPG, PNG, or WEBP files are allowed');
       return;
     }
+
+    // Validate file size (2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error('Max file size is 2MB');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const uploadProfilePic = async (file) => {
-    if (!file) return form.profilePic;
     setUploading(true);
+
     try {
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Prepare form data
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('profilePic', file);
 
-      const res = await api.post('/media/upload-profile', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      console.log('📁 Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type);
 
-      setUploading(false);
-      return res.data.media.url;
+      // Upload to server
+      const response = await uploadProfilePic(formData);
+
+      if (response.data.success) {
+        const newProfilePic = response.data.url;
+        console.log('🎉 New profile picture URL:', newProfilePic);
+
+        // Update form state
+        setForm((f) => ({ ...f, profilePic: newProfilePic }));
+        setPreview(newProfilePic);
+
+        // Update user in localStorage and trigger events
+        const updatedUser = { ...user, profilePic: newProfilePic };
+        updateUserInStorage(updatedUser);
+
+        toast.success('Profile picture uploaded successfully!');
+      } else {
+        throw new Error(response.data.message || 'Upload failed');
+      }
+
     } catch (error) {
+      console.error('Upload error:', error);
+      // Reset preview to previous state
+      setPreview(user?.profilePic || '');
+      
+      // The error toast is already shown in uploadProfilePic function
+    } finally {
       setUploading(false);
-      toast.error('Failed to upload profile picture');
-      throw error;
     }
   };
 
@@ -94,41 +160,71 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setUploading(true);
 
     try {
-      let profilePicUrl = form.profilePic;
-
-      if (fileInputRef.current?.files?.[0]) {
-        profilePicUrl = await uploadProfilePic(fileInputRef.current.files[0]);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please log in again');
+        navigate('/login');
+        return;
       }
 
       const payload = {
         name: form.name,
         email: form.email,
-        profilePic: profilePicUrl,
+        profilePic: form.profilePic,
       };
 
-      const res = await api.put('/users/profile', payload);
-      let updatedUser = res.data.user;
+      console.log('💾 Updating profile with payload:', payload);
 
-      updateUserInStorage(updatedUser);
-
-      setForm({
-        name: updatedUser.name,
-        email: updatedUser.email,
-        profilePic: updatedUser.profilePic,
+      const response = await api.put('/users/profile', payload, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
-      setPreview(updatedUser.profilePic);
+      if (response.data.success) {
+        const updatedUser = response.data.user;
+        console.log('✅ Profile updated:', updatedUser);
 
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        updateUserInStorage(updatedUser);
+
+        setForm({
+          name: updatedUser.name,
+          email: updatedUser.email,
+          profilePic: updatedUser.profilePic,
+        });
+
+        // Update preview
+        if (updatedUser.profilePic && updatedUser.profilePic !== 'undefined') {
+          setPreview(updatedUser.profilePic);
+        } else {
+          setPreview('');
+        }
+
+        // Clear file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+
+        toast.success('Profile updated successfully!');
+      } else {
+        throw new Error(response.data.message || 'Update failed');
       }
 
-      toast.success('Profile updated successfully!');
     } catch (error) {
-      console.error(error);
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      console.error('❌ Submit error:', error);
+      
+      if (error.response?.status === 401) {
+        toast.error('Please log in again');
+        navigate('/login');
+      } else {
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to update profile';
+        toast.error(errorMessage);
+      }
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -168,6 +264,8 @@ export default function ProfilePage() {
             {/* Decorative Elements */}
             <div className="absolute top-2 right-4 w-6 h-6 border-2 border-white/30 rounded-full"></div>
             <div className="absolute bottom-4 left-4 w-3 h-3 bg-white/40 rounded-full"></div>
+            
+            
           </div>
 
           <div className="px-8 py-8">
@@ -182,14 +280,14 @@ export default function ProfilePage() {
                       className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
                       crossOrigin="anonymous"
                       onError={(e) => {
-                        console.log('Image failed to load:', preview);
+                        console.log('❌ Image failed to load:', preview);
                         e.currentTarget.onerror = null;
                         setPreview('');
                       }}
                     />
                   ) : (
                     <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-teal-200 via-cyan-200 to-teal-300 text-teal-700 text-4xl font-bold uppercase">
-                      {form.name?.[0] || 'U'}
+                      {form.name?.[0] || user.name?.[0] || 'U'}
                     </div>
                   )}
 
@@ -220,21 +318,29 @@ export default function ProfilePage() {
                 {/* Upload Button */}
                 <label
                   htmlFor="profilePic"
-                  className="absolute -bottom-2 -right-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white p-3 rounded-full cursor-pointer shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-110"
+                  className={`absolute -bottom-2 -right-2 text-white p-3 rounded-full cursor-pointer shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-110 ${
+                    uploading 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600'
+                  }`}
                 >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
+                  {uploading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                  )}
                 </label>
                 <input
                   id="profilePic"
@@ -243,22 +349,20 @@ export default function ProfilePage() {
                   className="hidden"
                   ref={fileInputRef}
                   onChange={handleFileChange}
+                  disabled={uploading}
                 />
               </div>
-              <p className="mt-4 text-sm text-gray-600">
-                Click the + button to change your profile picture
-              </p>
             </div>
 
             {/* Profile Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6 mt-10">
               <div className="space-y-2">
                 <label
                   htmlFor="name"
                   className="flex items-center text-gray-700 font-semibold text-sm"
                 >
                   <svg
-                    className="w-4 h-4 mr-2 text-teal-500"
+                    className="w-4 h-4 mr-2 text-teal-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -279,7 +383,7 @@ export default function ProfilePage() {
                   value={form.name}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-teal-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
                   placeholder="Enter your full name"
                 />
               </div>
@@ -290,7 +394,7 @@ export default function ProfilePage() {
                   className="flex items-center text-gray-700 font-semibold text-sm"
                 >
                   <svg
-                    className="w-4 h-4 mr-2 text-cyan-500"
+                    className="w-4 h-4 mr-2 text-teal-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -311,7 +415,7 @@ export default function ProfilePage() {
                   value={form.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-cyan-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
+                  className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
                   placeholder="Enter your email address"
                 />
               </div>
@@ -319,41 +423,28 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 disabled={uploading}
-                className={`w-full py-4 font-semibold rounded-xl text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
+                className={`w-full py-4 font-semibold rounded-xl text-white transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
                   uploading
                     ? 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-teal-500 via-cyan-500 to-teal-600 hover:from-teal-600 hover:via-cyan-600 hover:to-teal-700'
+                    : 'bg-gradient-to-r from-teal-600 via-cyan-500 to-teal-600 hover:from-teal-600 hover:via-cyan-600 hover:to-teal-700'
                 }`}
               >
                 {uploading ? (
                   <div className="flex items-center justify-center">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Uploading...
+                    {form.profilePic !== user?.profilePic ? 'Uploading...' : 'Updating...'}
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center">
-                    Save Changes
-                  </div>
+                  <div className="flex items-center justify-center">Save Changes</div>
                 )}
               </button>
             </form>
-
-            <button
-              onClick={logout}
-              className="mt-6 w-full py-4 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-            >
-              <div className="flex items-center justify-center">
-                Sign Out
-              </div>
-            </button>
           </div>
         </div>
 
         {/* Footer Note */}
         <div className="text-center mt-6">
-          <p className="text-gray-500 text-sm">
-            Your profile information is secure and private
-          </p>
+          <p className="text-gray-500 text-sm">Your profile information is secure and private</p>
         </div>
       </div>
     </div>

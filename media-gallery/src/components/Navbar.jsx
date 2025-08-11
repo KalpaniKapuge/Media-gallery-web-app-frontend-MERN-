@@ -14,22 +14,29 @@ export default function Navbar() {
     const updateUser = () => {
       try {
         const stored = JSON.parse(localStorage.getItem('user') || 'null');
-        console.log('Loaded user from localStorage:', stored); // For debugging
+        console.log('Navbar: Loaded user from localStorage:', stored);
         setUser(stored);
-      } catch {
+      } catch (error) {
+        console.error('Navbar: Error loading user from localStorage:', error);
         setUser(null);
       }
     };
 
-    updateUser(); // run on mount
+    updateUser(); // Run on mount
 
     // Listen for both storage events (cross-tab) and custom events (same-tab)
-    const handleStorageChange = () => updateUser();
-    const handleUserDataChange = () => updateUser();
+    const handleStorageChange = () => {
+      console.log('Navbar: Storage event triggered');
+      updateUser();
+    };
+    const handleUserDataChange = () => {
+      console.log('Navbar: userDataChanged event triggered');
+      updateUser();
+    };
 
-    window.addEventListener('storage', handleStorageChange); // cross-tab updates
-    window.addEventListener('userDataChanged', handleUserDataChange); // same-tab updates
-    
+    window.addEventListener('storage', handleStorageChange); // Cross-tab updates
+    window.addEventListener('userDataChanged', handleUserDataChange); // Same-tab updates
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('userDataChanged', handleUserDataChange);
@@ -49,12 +56,12 @@ export default function Navbar() {
 
   const logout = () => {
     localStorage.removeItem('token');
-    localStorage.removeUser('user');
+    localStorage.removeItem('user');
     setUser(null);
-    
+
     // Dispatch custom event to notify other components
     window.dispatchEvent(new Event('userDataChanged'));
-    
+
     toast.success('Logged out successfully');
     navigate('/login');
   };
@@ -137,14 +144,14 @@ export default function Navbar() {
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition rounded-full px-3 py-1 text-sm font-medium backdrop-blur-sm"
                 aria-label="User menu"
               >
-                {user?.profilePic ? (
+                {user?.profilePic && user.profilePic !== '/uploads/default-avatar.png' && user.profilePic !== 'undefined' ? (
                   <img
                     src={user.profilePic}
                     alt="Profile"
                     className="h-8 w-8 rounded-full object-cover"
                     crossOrigin="anonymous"
                     onError={(e) => {
-                      console.log('Profile image failed to load:', user.profilePic);
+                      console.log('Navbar: Profile image failed to load:', user.profilePic);
                       e.currentTarget.onerror = null;
                       e.currentTarget.style.display = 'none';
                       // Show fallback div
@@ -153,8 +160,10 @@ export default function Navbar() {
                     }}
                   />
                 ) : null}
-                <div 
-                  className={`h-8 w-8 flex items-center justify-center bg-gradient-to-r from-green-300 to-teal-400 rounded-full text-xs font-semibold uppercase text-white ${user?.profilePic ? 'hidden' : 'flex'}`}
+                <div
+                  className={`h-8 w-8 flex items-center justify-center bg-gradient-to-r from-green-300 to-teal-400 rounded-full text-xs font-semibold uppercase text-white ${
+                    user?.profilePic && user.profilePic !== '/uploads/default-avatar.png' && user.profilePic !== 'undefined' ? 'hidden' : 'flex'
+                  }`}
                 >
                   {user?.name?.[0] || 'U'}
                 </div>
@@ -162,9 +171,7 @@ export default function Navbar() {
                   Hi, {user?.name}
                 </div>
                 <svg
-                  className={`h-4 w-4 transition-transform ${
-                    openUserMenu ? 'rotate-180' : ''
-                  }`}
+                  className={`h-4 w-4 transition-transform ${openUserMenu ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
