@@ -18,12 +18,19 @@ export default function RegisterPage() {
     if (!emailIsValid(form.email)) return toast.error('Invalid email');
     if (!passwordIsValid(form.password)) return toast.error('Password needs >=6 chars');
 
+     // If role is admin, require adminCode
+    if (form.role === 'admin' && !form.adminCode.trim()) {
+      return toast.error('Admin invite code required');
+    }
+
     setLoading(true);
     try {
       await api.post('/auth/register/request-otp', {
         name: form.name.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
+        role: form.role,            // send role
+        adminCode: form.adminCode,
       });
       setOtpSent(true);
       toast.success('OTP sent to your email');
@@ -190,6 +197,37 @@ export default function RegisterPage() {
                   required
                   className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
                 />
+                <div className="space-y-2">
+                  <label className="block text-gray-700 font-semibold text-sm mb-1">Select Role</label>
+                  <select
+                    value={form.role}
+                    onChange={(e) => setForm(f => ({ ...f, role: e.target.value }))}
+                    disabled={loading}
+                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:bg-white transition-all duration-300 text-gray-800"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                 {/* Show adminCode input only if role is admin */}
+                {form.role === 'admin' && (
+                  <div className="space-y-2">
+                    <label htmlFor="adminCode" className="flex items-center text-gray-700 font-semibold text-sm">
+                      Admin Invite Code
+                    </label>
+                    <input
+                      id="adminCode"
+                      type="text"
+                      placeholder="Enter admin invite code"
+                      value={form.adminCode}
+                      onChange={(e) => setForm(f => ({ ...f, adminCode: e.target.value }))}
+                      disabled={loading}
+                      required={form.role === 'admin'}
+                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-teal-600 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-400"
+                    />
+                  </div>
+                )}
+
                 <div className="mt-1 text-right text-sm">
                   <Link
                     to="/forgot-password"
