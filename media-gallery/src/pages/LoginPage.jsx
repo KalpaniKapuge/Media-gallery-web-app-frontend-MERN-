@@ -223,7 +223,7 @@ export default function LoginPage() {
             </div>
 
             {/* Google Sign-In Button container */}
-            <div id="googleSignInDiv" className="flex justify-center" />
+            <div id="googleSignInDiv" className="flex justify-center border-2 border-teal-600 rounded-xl" />
 
             <p className="text-center text-gray-500 text-sm mt-6">
               Don't have an account?{' '}
