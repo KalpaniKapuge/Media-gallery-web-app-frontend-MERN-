@@ -155,7 +155,7 @@ export default function AdminMessageList() {
         </div>
 
         {/* Controls */}
-        <div className="bg-white/90 backdrop-blur rounded-xl p-4 shadow-lg border border-gray-100 mb-6">
+        <div className="bg-white/90 backdrop-blur rounded-xl p-4 shadow-lg border border-gray-300 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="relative">
               <input
@@ -163,14 +163,14 @@ export default function AdminMessageList() {
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-600 transition-all"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-600 transition-all"
               />
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-600 transition-all cursor-pointer text-teal-700 bg-white"
+              className="px-4 py-2 rounded-lg border border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-600 transition-all cursor-pointer text-teal-700 bg-white"
             >
               <option value="newest" className="text-teal-700 bg-white">Newest First</option>
               <option value="oldest" className="text-teal-700 bg-white">Oldest First</option>
@@ -181,7 +181,7 @@ export default function AdminMessageList() {
             <select
               value={filterBy}
               onChange={(e) => setFilterBy(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-600 transition-all cursor-pointer text-teal-700 bg-white"
+              className="px-4 py-2 rounded-lg border border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-600 transition-all cursor-pointer text-teal-700 bg-white"
             >
               <option value="all" className="text-teal-700 bg-white">All</option>
               <option value="recent" className="text-teal-700 bg-white">Last 7 Days</option>
